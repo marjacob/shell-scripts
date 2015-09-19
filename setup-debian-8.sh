@@ -70,6 +70,7 @@ ufw --force enable
 # -----------------------------------------------------------------------------
 
 function ssh_keygen {
+	user="$1"
 	hostmask="${user}@${conf_hostname}"
 	su - "${user}" -c << EOF
 		mkdir -p "${HOME}/.ssh"
