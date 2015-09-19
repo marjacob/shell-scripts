@@ -73,15 +73,15 @@ function ssh_keygen {
 	user="$1"
 	hostmask="${user}@${conf_hostname}"
 	sudo -u "${user}" -i << EOF
-		mkdir -p ".ssh"
+		mkdir -p .ssh
 		ssh-keygen -q -N "" -t rsa -b 4096 \
 			-C "${hostmask}" \
-			-f ".ssh/id_rsa"
-		cp ".ssh/id_rsa.pub" ".ssh/authorized_keys"
-		touch ".ssh/{config,known_hosts}"
-		chown -R "${user}:${user}" ".ssh"
-		chmod 700 ".ssh"
-		chmod 600 ".ssh/*"
+			-f .ssh/id_rsa
+		cp .ssh/id_rsa.pub .ssh/authorized_keys
+		touch .ssh/{config,known_hosts}
+		chown -R ${user}:${user} .ssh
+		chmod 700 .ssh
+		chmod 600 .ssh/*
 EOF
 }
 
