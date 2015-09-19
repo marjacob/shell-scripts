@@ -69,28 +69,30 @@ ufw --force enable
 
 # Create and configure user accounts.
 # -----------------------------------------------------------------------------
+# See http://stackoverflow.com/a/918931 for an explanation of IFS.
 
-function ssh_keygen {
-	user="$1"
-	hostmask="${user}@${conf_hostname}"
-	sudo -u "${user}" -i << EOF
-		mkdir -p .ssh
-		ssh-keygen -q -N "" -t rsa -b 4096 \
-			-C "${hostmask}" \
-			-f .ssh/id_rsa
-		cp .ssh/id_rsa.pub .ssh/authorized_keys
-		touch .ssh/{config,known_hosts}
-		chown -R ${user}:${user} .ssh
-		chmod 700 .ssh
-		chmod 600 .ssh/*
-EOF
-}
-
-# Create users.
 IFS=';' read -ra ADDR <<< "${conf_users}"
 for user in "${ADDR[@]}"; do
+	# Create user account.
 	adduser --disabled-password --gecos "" "${user}"
-	ssh_keygen "${user}"
+
+	# Create SSH configuration directory.
+	user_ssh_home="$(eval echo ~${user})"
+	mkdir -p "${user_ssh_home}"
+	
+	# Generate SSH key pair.
+	ssh-keygen -q -N "" -t rsa -b 4096 \
+		-C "${user}@${conf_hostname}" \
+		-f "${user_ssh_home}/id_rsa"
+
+	# Create default SSH configuration files.
+	cp ${user_ssh_home}/id_rsa.pub ${user_ssh_home}/authorized_keys
+	touch ${user_ssh_home}/{config,known_hosts}
+
+	# Set the correct permissions.
+	chown -R ${user}:${user} ${user_ssh_home}
+	chmod 700 ${user_ssh_home}
+	chmod 600 ${user_ssh_home}/*
 done
 
 # Grant sudo permissions to specified users.
