@@ -72,7 +72,7 @@ ufw --force enable
 function ssh_keygen {
 	user="$1"
 	hostmask="${user}@${conf_hostname}"
-	sudo -u "${user}" -s <<EOF
+	sudo -u "${user}" -s << EOF
 		mkdir -p "${HOME}/.ssh"
 		ssh-keygen -q -N "" -t rsa -b 4096 \
 			-C "${hostmask}" \
