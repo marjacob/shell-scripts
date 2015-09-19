@@ -10,6 +10,7 @@ conf_packages=" \
 	build-essential \
 	gdb \
 	git \
+	htop \
 	mosh \
 	sudo \
 	tmux \
