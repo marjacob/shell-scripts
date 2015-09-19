@@ -72,7 +72,7 @@ ufw --force enable
 function ssh_keygen {
 	user="$1"
 	hostmask="${user}@${conf_hostname}"
-	su - "${user}" -c << EOF
+	sudo -u "${user}" -s <<EOF
 		mkdir -p "${HOME}/.ssh"
 		ssh-keygen -q -N "" -t rsa -b 4096 \
 			-C "${hostmask}" \
@@ -82,7 +82,7 @@ function ssh_keygen {
 		chown -R "${user}:${user}" "${HOME}/.ssh"
 		chmod 700 "${HOME}/.ssh"
 		chmod 600 "${HOME}/.ssh/*"
-	EOF
+EOF
 }
 
 # Create users.
