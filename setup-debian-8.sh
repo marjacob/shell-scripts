@@ -125,6 +125,8 @@ exit 0
 
 # Further reading.
 # ----------------------------------------------------------------------
+# - Terminal Colors With 'tput':
+#   http://www.tldp.org/HOWTO/Bash-Prompt-HOWTO/x405.html
 # - The Unofficial Bash Strict Mode: 
 #   http://redsymbol.net/articles/unofficial-bash-strict-mode
 # - The Internal Field Separator (IFS):
