@@ -11,8 +11,10 @@ conf_users="martin;terje"
 conf_sudoers="martin"
 conf_packages="
 	build-essential
+	curl
 	gdb
 	git
+	git-doc
 	htop
 	mosh
 	strace
