@@ -58,7 +58,7 @@ fi
 # The hostnamectl command is a part of systemd.
 
 if has hostnamectl; then
-	hostnamectl set-hostname "$conf_hostname"
+	hostnamectl set-hostname "${conf_hostname}"
 else
 	echo "${conf_hostname}" > /etc/hostname
 	hostname -F /etc/hostname
@@ -67,7 +67,7 @@ fi
 # Configure the system time zone.
 # ----------------------------------------------------------------------
 
-echo "$conf_timezone" > /etc/timezone
+echo "${conf_timezone}" > /etc/timezone
 dpkg-reconfigure -f noninteractive tzdata
 
 # Update the system and install new packages.
@@ -82,7 +82,7 @@ aptitude -y install ${conf_packages}
 
 ufw default deny incoming
 ufw default allow outgoing
-ufw limit 60001/udp
+ufw limit 60001/udp # mosh
 ufw limit ssh/tcp
 ufw --force enable
 
