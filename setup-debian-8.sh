@@ -3,6 +3,7 @@ set -euo pipefail
 IFS=$'\n\t'
 
 # Written with Debian 8 in mind.
+# ----------------------------------------------------------------------
 
 conf_hostname="shion"
 conf_timezone="Europe/Oslo"
@@ -14,6 +15,7 @@ conf_packages="
 	git
 	htop
 	mosh
+	strace
 	sudo
 	tmux
 	tree
@@ -23,6 +25,9 @@ conf_packages="
 	vlock
 "
 
+# Define functions and variables.
+# ----------------------------------------------------------------------
+
 # Suppress requests for information during package configuration.
 export DEBIAN_FRONTEND=noninteractive
 
@@ -30,7 +35,6 @@ export DEBIAN_FRONTEND=noninteractive
 function has {
 	command -v "$@" >/dev/null 2>&1	
 }
-
 
 # Make sure that the user is actually root.
 # ----------------------------------------------------------------------
@@ -84,7 +88,6 @@ ufw --force enable
 
 # Create and configure user accounts.
 # ----------------------------------------------------------------------
-# See http://stackoverflow.com/a/918931 for an explanation of IFS.
 
 IFS=';' read -ra ADDR <<< "${conf_users}"
 for user in "${ADDR[@]}"; do
@@ -120,5 +123,7 @@ exit 0
 
 # Further reading.
 # ----------------------------------------------------------------------
-# - The unofficial Bash Strict Mode: 
-#   http://redsymbol.net/articles/unofficial-bash-strict-mode/
+# - The Unofficial Bash Strict Mode: 
+#   http://redsymbol.net/articles/unofficial-bash-strict-mode
+# - The Internal Field Separator (IFS):
+#   http://stackoverflow.com/a/918931
