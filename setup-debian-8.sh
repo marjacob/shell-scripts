@@ -8,9 +8,21 @@ conf_hostname="shion"
 conf_timezone="Europe/Oslo"
 conf_users="martin;terje"
 conf_sudoers="martin"
-conf_packages=""`
-	`"build-essential gdb git htop mosh "`
-	`"sudo tmux tree ufw valgrind vim vlock"
+
+read -r -d '' conf_packages <<-'PACKAGES'
+	build-essential
+	gdb
+	git
+	htop
+	mosh
+	sudo
+	tmux
+	tree
+	ufw
+	valgrind
+	vim
+	vloc
+PACKAGES
 
 # Suppress requests for information during package configuration.
 export DEBIAN_FRONTEND=noninteractive
