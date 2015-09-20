@@ -8,8 +8,7 @@ conf_hostname="shion"
 conf_timezone="Europe/Oslo"
 conf_users="martin;terje"
 conf_sudoers="martin"
-
-read -r -d '' conf_packages <<-'PACKAGES'
+conf_packages="
 	build-essential
 	gdb
 	git
@@ -21,8 +20,8 @@ read -r -d '' conf_packages <<-'PACKAGES'
 	ufw
 	valgrind
 	vim
-	vloc
-PACKAGES
+	vlock
+"
 
 # Suppress requests for information during package configuration.
 export DEBIAN_FRONTEND=noninteractive
@@ -93,7 +92,7 @@ for user in "${ADDR[@]}"; do
 	adduser --disabled-password --gecos "" "${user}"
 
 	# Create SSH configuration directory.
-	user_ssh_home="$(eval echo ~${user})"
+	user_ssh_home="$(eval echo ~${user})/.ssh"
 	mkdir -p "${user_ssh_home}"
 	
 	# Generate SSH key pair.
