@@ -109,8 +109,8 @@ for user in "${ADDR[@]}"; do
 
 	# Set the correct permissions.
 	chown -R ${user}:${user} ${user_ssh_home}
+	chmod -R 600 ${user_ssh_home}
 	chmod 700 ${user_ssh_home}
-	chmod 600 ${user_ssh_home}/*
 done
 
 # Grant sudo permissions to specified users.
