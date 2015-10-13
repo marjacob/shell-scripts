@@ -11,6 +11,7 @@ conf_users="martin;terje"
 conf_sudoers="martin"
 conf_packages="
 	build-essential
+	cmake
 	curl
 	gdb
 	git
