@@ -29,9 +29,12 @@ conf_packages=(
 	"git"
 	"git-doc"
 	"htop"
-	"libperl-dev" # ZNC dependency.
-	"libssl-dev"  # ZNC dependency.
-	"pkg-config"  # ZNC dependency.
+	"libcurl4-doc"
+	"libcurl4-gnutls-dev"
+	"libicu-dev"          # ZNC dependency (optional).
+	"libperl-dev"         # ZNC dependency.
+	"libssl-dev"          # ZNC dependency.
+	"pkg-config"          # ZNC dependency.
 	"stow"
 	"strace"
 	"sudo"
