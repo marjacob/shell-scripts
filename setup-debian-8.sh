@@ -53,9 +53,18 @@ conf_packages=(
 # http://serverfault.com/a/227194
 export DEBIAN_FRONTEND=noninteractive
 
+# The codename of the current Debian version.
+# http://unix.stackexchange.com/a/180779
+debian_codename=$(awk -F"[)(]+" '/VERSION=/ {print $2}' /etc/os-release)
+
 # Determines whether a program is available or not.
 function has {
 	command -v "$@" >/dev/null 2>&1	
+}
+
+# Downloads and installs signing keys for apt.
+function add_apt_key {
+	wget -qO - "${1}" | sudo apt-key add -
 }
 
 # Make sure that the user is actually root.
@@ -91,6 +100,21 @@ fi
 
 echo "${conf_timezone}" > /etc/timezone
 dpkg-reconfigure -f noninteractive tzdata
+
+# Install third-party signing keys.
+# ----------------------------------------------------------------------
+
+add_apt_key "http://nginx.org/keys/nginx_signing.key"
+
+# Configure additional repositories.
+# ---------------------------------------------------------------------
+
+printf ""`
+	`"deb http://nginx.org/packages/mainline/debian/ "`
+		`"${debian_codename} nginx\n"`
+	`"deb-src http://nginx.org/packages/mainline/debian/ "`
+		`"${debian_codename} nginx\n" \
+	> /etc/apt/sources.list.d/nginx.list
 
 # Update the system and install new packages.
 # ----------------------------------------------------------------------
