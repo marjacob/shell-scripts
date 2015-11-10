@@ -6,32 +6,48 @@ IFS=$'\n\t'
 # ----------------------------------------------------------------------
 
 conf_hostname="shion"
+
 conf_timezone="Europe/Oslo"
-conf_users="martin;terje"
-conf_sudoers="martin"
-conf_packages="
-	build-essential
-	cmake
-	curl
-	gdb
-	git
-	git-doc
-	htop
-	mosh
-	strace
-	sudo
-	tmux
-	tree
-	ufw
-	valgrind
-	vim
-	vlock
-"
+
+# Configure normal user accounts.
+conf_users=(
+	"martin"
+	"terje"
+)
+
+# Users that should be granted root access.
+conf_sudoers=(
+	"martin"
+)
+
+# Automatically installed packages.
+conf_packages=(
+	"build-essential"
+	"cmake"
+	"curl"
+	"gdb"
+	"git"
+	"git-doc"
+	"htop"
+	"libperl-dev" # ZNC dependency.
+	"libssl-dev"  # ZNC dependency.
+	"pkg-config"  # ZNC dependency.
+	"stow"
+	"strace"
+	"sudo"
+	"tmux"
+	"tree"
+	"ufw"
+	"valgrind"
+	"vim"
+	"vlock"
+)
 
 # Define functions and variables.
 # ----------------------------------------------------------------------
 
 # Suppress requests for information during package configuration.
+# http://serverfault.com/a/227194
 export DEBIAN_FRONTEND=noninteractive
 
 # Determines whether a program is available or not.
@@ -78,22 +94,21 @@ dpkg-reconfigure -f noninteractive tzdata
 
 aptitude update
 aptitude upgrade -y
-aptitude -y install ${conf_packages}
+aptitude -y install ${conf_packages[@]}
 
 # Configure and enable the firewall.
 # ----------------------------------------------------------------------
 
 ufw default deny incoming
 ufw default allow outgoing
-ufw limit 60001/udp # mosh
 ufw limit ssh/tcp
 ufw --force enable
 
 # Create and configure user accounts.
 # ----------------------------------------------------------------------
 
-IFS=';' read -ra ADDR <<< "${conf_users}"
-for user in "${ADDR[@]}"; do
+# Create user accounts and SSH key pairs.
+for user in "${conf_users[@]}"; do
 	# Create user account.
 	adduser --disabled-password --gecos "" "${user}"
 
@@ -117,8 +132,7 @@ for user in "${ADDR[@]}"; do
 done
 
 # Grant sudo permissions to specified users.
-IFS=';' read -ra ADDR <<< "${conf_sudoers}"
-for user in "${ADDR[@]}"; do
+for user in "${conf_sudoers[@]}"; do
 	usermod -a -G sudo "${user}"
 done
 
