@@ -64,7 +64,7 @@ function has {
 
 # Downloads and installs signing keys for apt.
 function add_apt_key {
-	wget -qO - "${1}" | sudo apt-key add -
+	wget -qO - "${1}" | apt-key add -
 }
 
 # Make sure that the user is actually root.
