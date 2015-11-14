@@ -22,7 +22,9 @@ conf_sudoers=(
 
 # Automatically installed packages.
 conf_packages=(
+	"apt-transport-https"
 	"build-essential"
+	"checkinstall"
 	"cmake"
 	"curl"
 	"gdb"
@@ -63,7 +65,7 @@ function has {
 }
 
 # Downloads and installs signing keys for apt.
-function add_apt_key {
+function apt_key_add {
 	wget -qO - "${1}" | apt-key add -
 }
 
@@ -104,16 +106,28 @@ dpkg-reconfigure -f noninteractive tzdata
 # Install third-party signing keys.
 # ----------------------------------------------------------------------
 
-add_apt_key "http://nginx.org/keys/nginx_signing.key"
+# nginx
+apt_key_add "http://nginx.org/keys/nginx_signing.key"
+
+# WeeChat
+apt-key adv \
+	--keyserver keys.gnupg.net \
+	--recv-keys 11E9DE8848F2B65222AA75B8D1820DB22A11534E
 
 # Configure additional repositories.
 # ---------------------------------------------------------------------
 
+# nginx
 printf ""`
 	`"deb http://nginx.org/packages/mainline/debian/ "`
 		`"${debian_codename} nginx\n"`
 	`"deb-src http://nginx.org/packages/mainline/debian/ "`
 		`"${debian_codename} nginx\n" \
+	> /etc/apt/sources.list.d/nginx.list
+
+# WeeChat
+printf ""`
+	`"deb https://weechat.org/debian ${debian_codename} main\n" \
 	> /etc/apt/sources.list.d/nginx.list
 
 # Update the system and install new packages.
