@@ -127,7 +127,7 @@ printf ""`
 
 # WeeChat
 printf ""`
-	`"deb https://weechat.org/debian ${debian_codename} main\n" \
+	`"deb http://weechat.org/debian ${debian_codename} main\n" \
 	> /etc/apt/sources.list.d/nginx.list
 
 # Update the system and install new packages.
