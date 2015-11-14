@@ -177,7 +177,7 @@ done
 
 printf "\n"`
 	`" TODO\n"`
-	`" o Add your public keys to ~/.ssh/authorized_keys."`
+	`" o Add your public keys to ~/.ssh/authorized_keys.\n"`
 	`" o Modify /etc/ssh/sshd_config:\n"`
 	`"   1) Change PermitRootLogin to \"no\".\n"`
 	`"   2) Change PasswordAuthentication to \"no\".\n"`
