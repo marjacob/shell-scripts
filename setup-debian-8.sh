@@ -177,13 +177,17 @@ done
 
 printf "\n"`
 	`" TODO\n"`
+	`" o Set passwords on the appropriate user accounts:\n"`
+	`"   passwd <username>\n"`
 	`" o Add your public keys to ~/.ssh/authorized_keys.\n"`
+	`"   Failing to do this may prevent you from logging in later.\n"`
+	`" o Modify /etc/hosts to suit your needs.\n"`
 	`" o Modify /etc/ssh/sshd_config:\n"`
 	`"   1) Change PermitRootLogin to \"no\".\n"`
 	`"   2) Change PasswordAuthentication to \"no\".\n"`
 	`"   3) Restart the SSH service:\n"`
 	`"      sudo systemctl restart sshd\n"`
-	`" o Modify /etc/hosts to suit your needs.\n"
+	`"\n"
 
 exit 0
 
