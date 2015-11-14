@@ -182,7 +182,8 @@ printf "\n"`
 	`"   1) Change PermitRootLogin to \"no\".\n"`
 	`"   2) Change PasswordAuthentication to \"no\".\n"`
 	`"   3) Restart the SSH service:\n"`
-	`"      sudo systemctl restart sshd\n"
+	`"      sudo systemctl restart sshd\n"`
+	`" o Modify /etc/hosts to suit your needs.\n"
 
 exit 0
 
