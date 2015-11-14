@@ -175,6 +175,15 @@ for user in "${conf_sudoers[@]}"; do
 	usermod -a -G sudo "${user}"
 done
 
+printf "\n"`
+	`" TODO\n"`
+	`" o Add your public keys to ~/.ssh/authorized_keys."`
+	`" o Modify /etc/ssh/sshd_config:\n"`
+	`"   1) Change PermitRootLogin to \"no\".\n"`
+	`"   2) Change PasswordAuthentication to \"no\".\n"`
+	`"   3) Restart the SSH service:\n"`
+	`"      sudo systemctl restart sshd\n"
+
 exit 0
 
 # Further reading.
