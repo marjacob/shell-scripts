@@ -64,11 +64,6 @@ function has {
 	command -v "$@" >/dev/null 2>&1	
 }
 
-# Downloads and installs signing keys for apt.
-function apt_key_add {
-	wget -qO - "${1}" | apt-key add -
-}
-
 # Make sure that the user is actually root.
 # ----------------------------------------------------------------------
 
@@ -107,7 +102,10 @@ dpkg-reconfigure -f noninteractive tzdata
 # ----------------------------------------------------------------------
 
 # nginx
-apt_key_add "http://nginx.org/keys/nginx_signing.key"
+apt-key adv \
+	--keyserver pgp.mit.edu \
+	--recv-keys 573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62
+
 
 # WeeChat
 apt-key adv \
@@ -128,7 +126,7 @@ printf ""`
 # WeeChat
 printf ""`
 	`"deb http://weechat.org/debian ${debian_codename} main\n" \
-	> /etc/apt/sources.list.d/nginx.list
+	> /etc/apt/sources.list.d/weechat.list
 
 # Update the system and install new packages.
 # ----------------------------------------------------------------------
