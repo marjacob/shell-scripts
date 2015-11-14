@@ -187,6 +187,7 @@ printf "\n"`
 	`"   2) Change PasswordAuthentication to \"no\".\n"`
 	`"   3) Restart the SSH service:\n"`
 	`"      sudo systemctl restart sshd\n"`
+	`" o Use UFW to manage the firewall (man ufw).\n"`
 	`"\n"
 
 exit 0
