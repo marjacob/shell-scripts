@@ -64,15 +64,16 @@ function has {
 	command -v "$@" >/dev/null 2>&1	
 }
 
+# Color escape codes.
+bold=$(tput bold)
+cyan=$(tput setaf 6)
+normal=$(tput sgr0)
+red=$(tput setaf 1)
+
 # Make sure that the user is actually root.
 # ----------------------------------------------------------------------
 
 if [[ ${EUID} -ne 0 ]]; then
-	bold=$(tput bold)
-	cyan=$(tput setaf 6)
-	normal=$(tput sgr0)
-	red=$(tput setaf 1)
-
 	printf ""`
 		`"${red}${bold}error: "`
 		`"${normal}must be run as ${bold}root${normal} "`
@@ -85,6 +86,8 @@ fi
 # ----------------------------------------------------------------------
 # The hostnamectl command is a part of systemd.
 
+printf "${bold}Setting hostname to \"${conf_hostname}\"...${normal}\n"
+
 if has hostnamectl; then
 	hostnamectl set-hostname "${conf_hostname}"
 else
@@ -95,19 +98,22 @@ fi
 # Configure the system time zone.
 # ----------------------------------------------------------------------
 
+printf "${bold}Setting timezone to \"${conf_timezone}\"...${normal}\n"
+
 echo "${conf_timezone}" > /etc/timezone
 dpkg-reconfigure -f noninteractive tzdata
 
 # Install third-party signing keys.
 # ----------------------------------------------------------------------
 
-# nginx
+printf "${bold}Installing nginx signing key...${normal}\n"
+
 apt-key adv \
 	--keyserver pgp.mit.edu \
 	--recv-keys 573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62
 
+printf "${bold}Installing WeeChat signing key...${normal}\n"
 
-# WeeChat
 apt-key adv \
 	--keyserver keys.gnupg.net \
 	--recv-keys 11E9DE8848F2B65222AA75B8D1820DB22A11534E
@@ -115,28 +121,36 @@ apt-key adv \
 # Configure additional repositories.
 # ---------------------------------------------------------------------
 
-# nginx
+repo_nginx_url="http://nginx.org/packages/mainline/debian/"
+printf "${bold}Installing nginx repository...${normal}\n"
 printf ""`
-	`"deb http://nginx.org/packages/mainline/debian/ "`
-		`"${debian_codename} nginx\n"`
-	`"deb-src http://nginx.org/packages/mainline/debian/ "`
-		`"${debian_codename} nginx\n" \
+	`"deb ${repo_nginx_url} ${debian_codename} nginx\n"`
+	`"deb-src ${repo_nginx_url} ${debian_codename} nginx\n" \
 	> /etc/apt/sources.list.d/nginx.list
 
-# WeeChat
+repo_weechat_url="http://weechat.org/debian/"
+printf "${bold}Installing WeeChat repository...${normal}\n"
 printf ""`
-	`"deb http://weechat.org/debian ${debian_codename} main\n" \
+	`"deb ${repo_weechat_url} ${debian_codename} main\n"`
+	`"deb-src ${repo_weechat_url} ${debian_codename} main\n" \
 	> /etc/apt/sources.list.d/weechat.list
 
 # Update the system and install new packages.
 # ----------------------------------------------------------------------
 
+printf "${bold}Updating package list...${normal}\n"
 aptitude update
+
+printf "${bold}Upgrading installed packages...${normal}\n"
 aptitude upgrade -y
+
+printf "${bold}Installing new packages...${normal}\n"
 aptitude -y install ${conf_packages[@]}
 
 # Configure and enable the firewall.
 # ----------------------------------------------------------------------
+
+printf "${bold}Configuring firewall...${normal}\n"
 
 ufw default deny incoming
 ufw default allow outgoing
@@ -146,6 +160,8 @@ ufw --force enable
 # Create and configure user accounts.
 # ----------------------------------------------------------------------
 
+printf "${bold}Creating users...${normal}\n"
+
 # Create user accounts and SSH key pairs.
 for user in "${conf_users[@]}"; do
 	# Create user account.
@@ -154,7 +170,7 @@ for user in "${conf_users[@]}"; do
 	# Create SSH configuration directory.
 	user_ssh_home="$(eval echo ~${user})/.ssh"
 	mkdir -p "${user_ssh_home}"
-	
+
 	# Generate SSH key pair.
 	ssh-keygen -q -N "" -t rsa -b 4096 \
 		-C "${user}@${conf_hostname}" \
@@ -178,8 +194,11 @@ done
 # Apply custom patches.
 # ----------------------------------------------------------------------
 
+printf "${bold}Applying custom patches...${normal}\n"
+
 # Patches annoying warning about a "precedence issue" in GNU Stow.
-(cd / && patch -p0) <<'EOF'
+# https://bugzilla.redhat.com/show_bug.cgi?id=1226473
+(cd / && patch -p0 -N) <<'EOF'
 --- /usr/share/perl5/Stow.pm	2015-11-15 14:13:24.988791230 +0100
 +++ /usr/share/perl5/Stow.pm	2015-11-15 14:14:50.901640819 +0100
 @@ -1732,8 +1732,9 @@
