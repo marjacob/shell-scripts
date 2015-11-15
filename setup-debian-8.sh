@@ -175,6 +175,30 @@ for user in "${conf_sudoers[@]}"; do
 	usermod -a -G sudo "${user}"
 done
 
+# Apply custom patches.
+# ----------------------------------------------------------------------
+
+# Patches annoying warning about a "precedence issue" in GNU Stow.
+(cd / && patch -p0) <<'EOF'
+--- /usr/share/perl5/Stow.pm	2015-11-15 14:13:24.988791230 +0100
++++ /usr/share/perl5/Stow.pm	2015-11-15 14:14:50.901640819 +0100
+@@ -1732,8 +1732,9 @@
+     }
+     elsif (-l $path) {
+         debug(4, "  read_a_link($path): real link");
+-        return readlink $path
+-            or error("Could not read link: $path");
++        my $target = readlink $path
++            or error("Could not read link: $path ($!)");
++        return $target;
+     }
+     internal_error("read_a_link() passed a non link path: $path\n");
+ }
+EOF
+
+# Print further instructions to be carried out by root.
+# ----------------------------------------------------------------------
+
 printf "\n"`
 	`" TODO\n"`
 	`" o Set passwords on the appropriate user accounts:\n"`
