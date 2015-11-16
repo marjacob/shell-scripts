@@ -46,6 +46,7 @@ conf_packages=(
 	"valgrind"
 	"vim"
 	"vlock"
+	"xauth"
 )
 
 # Define functions and variables.
