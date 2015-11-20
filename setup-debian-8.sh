@@ -22,7 +22,6 @@ conf_sudoers=(
 
 # Automatically installed packages.
 conf_packages=(
-	"apt-transport-https"
 	"autossh"
 	"build-essential"
 	"checkinstall"
@@ -77,7 +76,7 @@ function apt_install {
 
 # Determines whether a program is available or not.
 function has {
-	command -v "${@}" >/dev/null 2>&1	
+	command -v "${@}" >/dev/null 2>&1
 }
 
 # Color escape codes.
@@ -119,38 +118,25 @@ printf "${bold}Setting timezone to \"${conf_timezone}\"...${normal}\n"
 echo "${conf_timezone}" > "/etc/timezone"
 dpkg-reconfigure -f noninteractive tzdata
 
-# Install third-party signing keys.
-# ----------------------------------------------------------------------
-
-printf "${bold}Installing nginx signing key...${normal}\n"
-
-apt-key adv \
-	--keyserver "pgp.mit.edu" \
-	--recv-keys "573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62"
-
-printf "${bold}Installing WeeChat signing key...${normal}\n"
-
-apt-key adv \
-	--keyserver "keys.gnupg.net" \
-	--recv-keys "11E9DE8848F2B65222AA75B8D1820DB22A11534E"
-
 # Install prerequisite packages.
 # ---------------------------------------------------------------------
 
-required_packages=""
+required_packages=()
 
 # Install HTTPS transport for APT.
 if [ ! -e "/usr/lib/apt/methods/https" ]; then
-	required_packages="${required_packages} apt-transport-https"
+	required_packages+=("apt-transport-https")
 fi
 
 # Used to determine the version of the current Linux distribution.
 if ! has "lsb_release"; then
-	required_packages="${required_packages} lsb-release"
+	required_packages+=("lsb-release")
 fi
 
 # Install prerequisite packages.
-if [ -z "${required_packages// }" ]; then
+if [ ${required_packages} ]; then
+	apt_update
+	apt_upgrade
 	apt_install "${required_packages[@]}"
 fi
 
@@ -158,6 +144,23 @@ fi
 # ---------------------------------------------------------------------
 
 lsb_codename=$(lsb_release -c -s)
+
+# Install third-party signing keys.
+# ----------------------------------------------------------------------
+
+printf "${bold}Installing nginx signing key...${normal}\n"
+
+apt-key adv \
+	--keyserver "pgp.mit.edu" \
+	--recv-keys "573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62" \
+	> /dev/null
+
+printf "${bold}Installing WeeChat signing key...${normal}\n"
+
+apt-key adv \
+	--keyserver "keys.gnupg.net" \
+	--recv-keys "11E9DE8848F2B65222AA75B8D1820DB22A11534E" \
+	> /dev/null
 
 # Configure additional repositories.
 # ---------------------------------------------------------------------
@@ -169,7 +172,7 @@ printf ""`
 	`"deb-src ${repo_nginx_url} ${lsb_codename} nginx\n" \
 	> "/etc/apt/sources.list.d/nginx.list"
 
-repo_weechat_url="http://weechat.org/debian/"
+repo_weechat_url="https://weechat.org/debian/"
 printf "${bold}Installing WeeChat repository...${normal}\n"
 printf ""`
 	`"deb ${repo_weechat_url} ${lsb_codename} main\n"`
@@ -185,13 +188,23 @@ apt_install "${conf_packages[@]}"
 
 # Configure and enable the firewall.
 # ----------------------------------------------------------------------
-
+# The systemctl command is a part of systemd.
+# 
 printf "${bold}Configuring firewall...${normal}\n"
 
 ufw default deny incoming
 ufw default allow outgoing
 ufw limit ssh/tcp
 ufw --force enable
+
+if has systemctl; then
+	systemctl start ufw
+	systemctl enable ufw
+else
+	service ufw start
+	service ufw enable
+fi
+
 
 # Create and configure user accounts.
 # ----------------------------------------------------------------------
@@ -255,7 +268,7 @@ EOF
 # ----------------------------------------------------------------------
 
 printf "\n"`
-	`" TODO\n"`
+	`" ${bold}TODO${normal}\n"`
 	`" o Set passwords on the appropriate user accounts:\n"`
 	`"   passwd <username>\n"`
 	`" o Add your public keys to ~/.ssh/authorized_keys.\n"`
