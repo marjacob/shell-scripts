@@ -189,7 +189,7 @@ apt_install "${conf_packages[@]}"
 # Configure and enable the firewall.
 # ----------------------------------------------------------------------
 # The systemctl command is a part of systemd.
-# 
+
 printf "${bold}Configuring firewall...${normal}\n"
 
 ufw default deny incoming
