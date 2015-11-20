@@ -23,6 +23,7 @@ conf_sudoers=(
 # Automatically installed packages.
 conf_packages=(
 	"apt-transport-https"
+	"autossh"
 	"build-essential"
 	"checkinstall"
 	"cmake"
