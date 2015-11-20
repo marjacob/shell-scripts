@@ -57,13 +57,27 @@ conf_packages=(
 # http://serverfault.com/a/227194
 export DEBIAN_FRONTEND=noninteractive
 
-# The codename of the current Debian version.
-# http://unix.stackexchange.com/a/180779
-debian_codename=$(awk -F"[)(]+" '/VERSION=/ {print $2}' /etc/os-release)
+# Updates the package list.
+function apt_update {
+	printf "${bold}Updating package list...${normal}\n"
+	aptitude update
+}
+
+# Upgrades installed packages.
+function apt_upgrade {
+	printf "${bold}Upgrading installed packages...${normal}\n"
+	aptitude upgrade -y
+}
+
+# Installs new packages.
+function apt_install {
+	printf "${bold}Installing new packages...${normal}\n"
+	aptitude -y install "${@}"
+}
 
 # Determines whether a program is available or not.
 function has {
-	command -v "$@" >/dev/null 2>&1	
+	command -v "${@}" >/dev/null 2>&1	
 }
 
 # Color escape codes.
@@ -102,7 +116,7 @@ fi
 
 printf "${bold}Setting timezone to \"${conf_timezone}\"...${normal}\n"
 
-echo "${conf_timezone}" > /etc/timezone
+echo "${conf_timezone}" > "/etc/timezone"
 dpkg-reconfigure -f noninteractive tzdata
 
 # Install third-party signing keys.
@@ -111,14 +125,39 @@ dpkg-reconfigure -f noninteractive tzdata
 printf "${bold}Installing nginx signing key...${normal}\n"
 
 apt-key adv \
-	--keyserver pgp.mit.edu \
-	--recv-keys 573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62
+	--keyserver "pgp.mit.edu" \
+	--recv-keys "573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62"
 
 printf "${bold}Installing WeeChat signing key...${normal}\n"
 
 apt-key adv \
-	--keyserver keys.gnupg.net \
-	--recv-keys 11E9DE8848F2B65222AA75B8D1820DB22A11534E
+	--keyserver "keys.gnupg.net" \
+	--recv-keys "11E9DE8848F2B65222AA75B8D1820DB22A11534E"
+
+# Install prerequisite packages.
+# ---------------------------------------------------------------------
+
+required_packages=""
+
+# Install HTTPS transport for APT.
+if [ ! -e "/usr/lib/apt/methods/https" ]; then
+	required_packages="${required_packages} apt-transport-https"
+fi
+
+# Used to determine the version of the current Linux distribution.
+if ! has "lsb_release"; then
+	required_packages="${required_packages} lsb-release"
+fi
+
+# Install prerequisite packages.
+if [ -z "${required_packages// }" ]; then
+	apt_install "${required_packages[@]}"
+fi
+
+# Find the codename of the current Linux distribution.
+# ---------------------------------------------------------------------
+
+lsb_codename=$(lsb_release -c -s)
 
 # Configure additional repositories.
 # ---------------------------------------------------------------------
@@ -126,28 +165,23 @@ apt-key adv \
 repo_nginx_url="http://nginx.org/packages/mainline/debian/"
 printf "${bold}Installing nginx repository...${normal}\n"
 printf ""`
-	`"deb ${repo_nginx_url} ${debian_codename} nginx\n"`
-	`"deb-src ${repo_nginx_url} ${debian_codename} nginx\n" \
-	> /etc/apt/sources.list.d/nginx.list
+	`"deb ${repo_nginx_url} ${lsb_codename} nginx\n"`
+	`"deb-src ${repo_nginx_url} ${lsb_codename} nginx\n" \
+	> "/etc/apt/sources.list.d/nginx.list"
 
 repo_weechat_url="http://weechat.org/debian/"
 printf "${bold}Installing WeeChat repository...${normal}\n"
 printf ""`
-	`"deb ${repo_weechat_url} ${debian_codename} main\n"`
-	`"deb-src ${repo_weechat_url} ${debian_codename} main\n" \
-	> /etc/apt/sources.list.d/weechat.list
+	`"deb ${repo_weechat_url} ${lsb_codename} main\n"`
+	`"deb-src ${repo_weechat_url} ${lsb_codename} main\n" \
+	> "/etc/apt/sources.list.d/weechat.list"
 
 # Update the system and install new packages.
 # ----------------------------------------------------------------------
 
-printf "${bold}Updating package list...${normal}\n"
-aptitude update
-
-printf "${bold}Upgrading installed packages...${normal}\n"
-aptitude upgrade -y
-
-printf "${bold}Installing new packages...${normal}\n"
-aptitude -y install ${conf_packages[@]}
+apt_update
+apt_upgrade
+apt_install "${conf_packages[@]}"
 
 # Configure and enable the firewall.
 # ----------------------------------------------------------------------
