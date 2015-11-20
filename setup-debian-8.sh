@@ -225,7 +225,7 @@ printf "\n"`
 	`" o Set passwords on the appropriate user accounts:\n"`
 	`"   passwd <username>\n"`
 	`" o Add your public keys to ~/.ssh/authorized_keys.\n"`
-	`"   Failing to do this may prevent you from logging in later.\n"`
+	`"   Failing to do this may lock you out.\n"`
 	`" o Modify /etc/hosts to suit your needs.\n"`
 	`" o Modify /etc/ssh/sshd_config:\n"`
 	`"   1) Change PermitRootLogin to \"no\".\n"`
