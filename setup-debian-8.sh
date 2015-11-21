@@ -5,7 +5,7 @@ IFS=$'\n\t'
 # Written with Debian 8 in mind.
 # ----------------------------------------------------------------------
 
-conf_hostname="shion"
+conf_hostname="ion"
 
 conf_timezone="Europe/Oslo"
 
@@ -151,16 +151,20 @@ lsb_codename=$(lsb_release -c -s)
 printf "${bold}Installing nginx signing key...${normal}\n"
 
 apt-key adv \
-	--keyserver "pgp.mit.edu" \
-	--recv-keys "573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62" \
-	> /dev/null
+	--keyserver "keys.gnupg.net" \
+	--recv-keys "573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62"
+
+printf "${bold}Installing NodeSource signing key...${normal}\n"
+
+apt-key adv \
+	--keyserver "keys.gnupg.net" \
+	--recv-keys "9FD3B784BC1C6FC31A8A0A1C1655A0AB68576280"
 
 printf "${bold}Installing WeeChat signing key...${normal}\n"
 
 apt-key adv \
 	--keyserver "keys.gnupg.net" \
-	--recv-keys "11E9DE8848F2B65222AA75B8D1820DB22A11534E" \
-	> /dev/null
+	--recv-keys "11E9DE8848F2B65222AA75B8D1820DB22A11534E"
 
 # Configure additional repositories.
 # ---------------------------------------------------------------------
@@ -171,6 +175,13 @@ printf ""`
 	`"deb ${repo_nginx_url} ${lsb_codename} nginx\n"`
 	`"deb-src ${repo_nginx_url} ${lsb_codename} nginx\n" \
 	> "/etc/apt/sources.list.d/nginx.list"
+
+repo_nodesource_url="https://deb.nodesource.com/node_5.x"
+printf "${bold}Installing NodeSource repository...${normal}\n"
+printf ""`
+	`"deb ${repo_nodesource_url} ${lsb_codename} main\n"`
+	`"deb-src ${repo_nodesource_url} ${lsb_codename} main\n" \
+	> "/etc/apt/sources.list.d/nodesource.list"
 
 repo_weechat_url="https://weechat.org/debian/"
 printf "${bold}Installing WeeChat repository...${normal}\n"
