@@ -6,10 +6,9 @@ IFS=$'\n\t'
 # ----------------------------------------------------------------------
 
 conf_hostname="ion"
-
 conf_timezone="Europe/Oslo"
 
-# Configure normal user accounts.
+# Configure regular user accounts.
 conf_users=(
 	"martin"
 	"terje"
@@ -56,6 +55,17 @@ conf_packages=(
 # http://serverfault.com/a/227194
 export DEBIAN_FRONTEND=noninteractive
 
+# Color escape codes.
+bold=$(tput bold)
+cyan=$(tput setaf 6)
+normal=$(tput sgr0)
+red=$(tput setaf 1)
+
+# Determines whether a program is available or not.
+function has {
+	command -v "${@}" >/dev/null 2>&1
+}
+
 # Updates the package list.
 function apt_update {
 	printf "${bold}Updating package list...${normal}\n"
@@ -74,16 +84,13 @@ function apt_install {
 	aptitude -y install "${@}"
 }
 
-# Determines whether a program is available or not.
-function has {
-	command -v "${@}" >/dev/null 2>&1
+# Installs new signing keys.
+function apt_add_key {
+	printf "${bold}Installing ${2} signing key...${normal}\n"
+	apt-key adv \
+		--keyserver "keys.gnupg.net" \
+		--recv-keys "${1}"
 }
-
-# Color escape codes.
-bold=$(tput bold)
-cyan=$(tput setaf 6)
-normal=$(tput sgr0)
-red=$(tput setaf 1)
 
 # Make sure that the user is actually root.
 # ----------------------------------------------------------------------
@@ -145,30 +152,10 @@ fi
 
 lsb_codename=$(lsb_release -c -s)
 
-# Install third-party signing keys.
-# ----------------------------------------------------------------------
-
-printf "${bold}Installing nginx signing key...${normal}\n"
-
-apt-key adv \
-	--keyserver "keys.gnupg.net" \
-	--recv-keys "573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62"
-
-printf "${bold}Installing NodeSource signing key...${normal}\n"
-
-apt-key adv \
-	--keyserver "keys.gnupg.net" \
-	--recv-keys "9FD3B784BC1C6FC31A8A0A1C1655A0AB68576280"
-
-printf "${bold}Installing WeeChat signing key...${normal}\n"
-
-apt-key adv \
-	--keyserver "keys.gnupg.net" \
-	--recv-keys "11E9DE8848F2B65222AA75B8D1820DB22A11534E"
-
 # Configure additional repositories.
 # ---------------------------------------------------------------------
 
+apt_add_key "573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62" "nginx"
 repo_nginx_url="http://nginx.org/packages/mainline/debian/"
 printf "${bold}Installing nginx repository...${normal}\n"
 printf ""`
@@ -176,6 +163,7 @@ printf ""`
 	`"deb-src ${repo_nginx_url} ${lsb_codename} nginx\n" \
 	> "/etc/apt/sources.list.d/nginx.list"
 
+apt_add_key "9FD3B784BC1C6FC31A8A0A1C1655A0AB68576280" "NodeSource"
 repo_nodesource_url="https://deb.nodesource.com/node_5.x"
 printf "${bold}Installing NodeSource repository...${normal}\n"
 printf ""`
@@ -183,6 +171,7 @@ printf ""`
 	`"deb-src ${repo_nodesource_url} ${lsb_codename} main\n" \
 	> "/etc/apt/sources.list.d/nodesource.list"
 
+apt_add_key "11E9DE8848F2B65222AA75B8D1820DB22A11534E" "WeeChat"
 repo_weechat_url="https://weechat.org/debian/"
 printf "${bold}Installing WeeChat repository...${normal}\n"
 printf ""`
@@ -193,9 +182,11 @@ printf ""`
 # Update the system and install new packages.
 # ----------------------------------------------------------------------
 
-apt_update
-apt_upgrade
-apt_install "${conf_packages[@]}"
+if [ ${conf_packages} ]; then
+	apt_update
+	apt_upgrade
+	apt_install "${conf_packages[@]}"
+fi
 
 # Configure and enable the firewall.
 # ----------------------------------------------------------------------
@@ -215,7 +206,6 @@ else
 	service ufw start
 	service ufw enable
 fi
-
 
 # Create and configure user accounts.
 # ----------------------------------------------------------------------
@@ -240,7 +230,7 @@ for user in "${conf_users[@]}"; do
 	cp ${user_ssh_home}/id_rsa.pub ${user_ssh_home}/authorized_keys
 	touch ${user_ssh_home}/{config,known_hosts}
 
-	# Set the correct permissions.
+	# Set secure permissions.
 	chown -R ${user}:${user} ${user_ssh_home}
 	chmod -R 600 ${user_ssh_home}
 	chmod 700 ${user_ssh_home}
