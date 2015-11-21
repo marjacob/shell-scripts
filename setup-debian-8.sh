@@ -164,7 +164,7 @@ printf ""`
 	> "/etc/apt/sources.list.d/nginx.list"
 
 apt_add_key "9FD3B784BC1C6FC31A8A0A1C1655A0AB68576280" "NodeSource"
-repo_nodesource_url="https://deb.nodesource.com/node_5.x"
+repo_nodesource_url="https://deb.nodesource.com/node_5.x/"
 printf "${bold}Installing NodeSource repository...${normal}\n"
 printf ""`
 	`"deb ${repo_nodesource_url} ${lsb_codename} main\n"`
