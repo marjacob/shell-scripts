@@ -128,19 +128,12 @@ dpkg-reconfigure -f noninteractive tzdata
 # Install prerequisite packages.
 # ---------------------------------------------------------------------
 
-required_packages=()
+required_packages=(
+	"apt-transport-https"
+	"lsb-release"
+	"pwgen"
+)
 
-# Install HTTPS transport for APT.
-if [ ! -e "/usr/lib/apt/methods/https" ]; then
-	required_packages+=("apt-transport-https")
-fi
-
-# Used to determine the version of the current Linux distribution.
-if ! has "lsb_release"; then
-	required_packages+=("lsb-release")
-fi
-
-# Install prerequisite packages.
 if [ ${required_packages} ]; then
 	apt_update
 	apt_upgrade
@@ -215,25 +208,38 @@ printf "${bold}Creating users...${normal}\n"
 # Create user accounts and SSH key pairs.
 for user in "${conf_users[@]}"; do
 	# Create user account.
-	adduser --disabled-password --gecos "" "${user}"
+	if ! adduser --disabled-password --gecos "" "${user}"; then
+		continue;
+	fi
+
+	password="$(pwgen 16 1)"
+	echo "${user}:${password}" | chpasswd
 
 	# Create SSH configuration directory.
 	user_ssh_home="$(eval echo ~${user})/.ssh"
 	mkdir -p "${user_ssh_home}"
 
 	# Generate SSH key pair.
-	ssh-keygen -q -N "" -t rsa -b 4096 \
-		-C "${user}@${conf_hostname}" \
-		-f "${user_ssh_home}/id_rsa"
+	if [ ! -e "${user_ssh_home}/id_rsa" ]; then
+		ssh-keygen -q -N "" -t rsa -b 4096 \
+			-C "${user}@${conf_hostname}" \
+			-f "${user_ssh_home}/id_rsa"
 
-	# Create default SSH configuration files.
-	cp ${user_ssh_home}/id_rsa.pub ${user_ssh_home}/authorized_keys
-	touch ${user_ssh_home}/{config,known_hosts}
+		# Create default SSH configuration files.
+		touch ${user_ssh_home}/{config,known_hosts}
+		cp ${user_ssh_home}/id_rsa.pub \
+			${user_ssh_home}/authorized_keys
+	fi
 
 	# Set secure permissions.
 	chown -R ${user}:${user} ${user_ssh_home}
 	chmod -R 600 ${user_ssh_home}
 	chmod 700 ${user_ssh_home}
+
+	printf \
+		"${bold}Password for \"%s\" is \"%s\".${normal}\n" \
+		"${user}" \
+		"${password}"
 done
 
 # Grant sudo permissions to specified users.
