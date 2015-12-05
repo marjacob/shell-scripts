@@ -2,6 +2,7 @@
 set -euo pipefail
 IFS=$'\n\t'
 
+# Author: Martin Røed Jacobsen
 # Written with Debian 8 in mind.
 # -----------------------------------------------------------------------------
 
@@ -48,7 +49,7 @@ conf_packages=(
 	"xauth"	              # Allows X11 forwarding.
 )
 
-# Define functions and variables.
+# Internal functions and variables.
 # -----------------------------------------------------------------------------
 
 # Suppress requests for information during package configuration.
