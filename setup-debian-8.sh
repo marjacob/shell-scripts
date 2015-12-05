@@ -3,7 +3,7 @@ set -euo pipefail
 IFS=$'\n\t'
 
 # Written with Debian 8 in mind.
-# ----------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 conf_hostname="ion"
 conf_timezone="Europe/Oslo"
@@ -49,7 +49,7 @@ conf_packages=(
 )
 
 # Define functions and variables.
-# ----------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 # Suppress requests for information during package configuration.
 # http://serverfault.com/a/227194
@@ -105,7 +105,7 @@ function apt_add_key {
 }
 
 # Make sure that the user is actually root.
-# ----------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 if [[ ${EUID} -ne 0 ]]; then
 	printf ""`
@@ -117,7 +117,7 @@ if [[ ${EUID} -ne 0 ]]; then
 fi
 
 # Configure the system hostname.
-# ----------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # The hostnamectl command is a part of systemd.
 
 printf "${bold}Setting hostname to \"${conf_hostname}\"...${normal}\n"
@@ -130,7 +130,7 @@ else
 fi
 
 # Configure the system time zone.
-# ----------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 printf "${bold}Setting timezone to \"${conf_timezone}\"... "
 
@@ -142,7 +142,7 @@ else
 fi
 
 # Install prerequisite packages.
-# ---------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 required_packages=(
 	"apt-transport-https"
@@ -157,12 +157,12 @@ if [ ${required_packages} ]; then
 fi
 
 # Find the codename of the current Linux distribution.
-# ---------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 lsb_codename=$(lsb_release -c -s)
 
 # Configure additional repositories.
-# ---------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 if apt_add_key "573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62" "nginx"; then
 	repo_nginx_url="http://nginx.org/packages/mainline/debian/"
@@ -195,7 +195,7 @@ if apt_add_key "11E9DE8848F2B65222AA75B8D1820DB22A11534E" "WeeChat"; then
 fi
 
 # Update the system and install new packages.
-# ----------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 if [ ${conf_packages} ]; then
 	apt_update
@@ -204,7 +204,7 @@ if [ ${conf_packages} ]; then
 fi
 
 # Configure and enable the firewall.
-# ----------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # The systemctl command is a part of systemd.
 
 printf "${bold}Configuring firewall...${normal}\n"
@@ -223,7 +223,7 @@ else
 fi
 
 # Create and configure user accounts.
-# ----------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 printf "${bold}Creating users...${normal}\n"
 
@@ -271,7 +271,7 @@ for user in "${conf_sudoers[@]}"; do
 done
 
 # Apply custom patches.
-# ----------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 printf "${bold}Applying custom patches...${normal}\n"
 
@@ -295,7 +295,7 @@ printf "${bold}Applying custom patches...${normal}\n"
 EOF
 
 # Print further instructions to be carried out by root.
-# ----------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 printf "\n"`
 	`" ${bold}TODO${normal}\n"`
@@ -315,7 +315,7 @@ printf "\n"`
 exit 0
 
 # Further reading.
-# ----------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # - Terminal Colors With 'tput':
 #   http://www.tldp.org/HOWTO/Bash-Prompt-HOWTO/x405.html
 # - The Unofficial Bash Strict Mode:
