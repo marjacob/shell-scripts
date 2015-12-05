@@ -45,7 +45,7 @@ conf_packages=(
 	"valgrind"
 	"vim"
 	"vlock"
-	"xauth"
+	"xauth"	              # Allows X11 forwarding.
 )
 
 # Define functions and variables.
@@ -58,6 +58,7 @@ export DEBIAN_FRONTEND=noninteractive
 # Color escape codes.
 bold=$(tput bold)
 cyan=$(tput setaf 6)
+green=$(tput setaf 2)
 normal=$(tput sgr0)
 red=$(tput setaf 1)
 
@@ -86,10 +87,21 @@ function apt_install {
 
 # Installs new signing keys.
 function apt_add_key {
-	printf "${bold}Installing ${2} signing key...${normal}\n"
+	printf "${bold}Installing ${2} signing key... "
+
 	apt-key adv \
 		--keyserver "keys.gnupg.net" \
-		--recv-keys "${1}"
+		--recv-keys "${1}" >/dev/null 2>&1
+
+	local rc=${?}
+
+	if [ ${rc} -eq 0 ]; then
+		printf "${green}OK${normal}\n"
+	else
+		printf "${red}FAILED (%s)${normal}\n" "${rc}"
+	fi
+
+	return ${rc}
 }
 
 # Make sure that the user is actually root.
@@ -120,10 +132,14 @@ fi
 # Configure the system time zone.
 # ----------------------------------------------------------------------
 
-printf "${bold}Setting timezone to \"${conf_timezone}\"...${normal}\n"
+printf "${bold}Setting timezone to \"${conf_timezone}\"... "
 
 echo "${conf_timezone}" > "/etc/timezone"
-dpkg-reconfigure -f noninteractive tzdata
+if dpkg-reconfigure -f noninteractive tzdata >/dev/null 2>&1; then
+	printf "${green}OK${normal} [%s]\n" "$(date)"
+else
+	printf "${red}FAILED${normal}\n"
+fi
 
 # Install prerequisite packages.
 # ---------------------------------------------------------------------
@@ -148,29 +164,35 @@ lsb_codename=$(lsb_release -c -s)
 # Configure additional repositories.
 # ---------------------------------------------------------------------
 
-apt_add_key "573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62" "nginx"
-repo_nginx_url="http://nginx.org/packages/mainline/debian/"
-printf "${bold}Installing nginx repository...${normal}\n"
-printf ""`
-	`"deb ${repo_nginx_url} ${lsb_codename} nginx\n"`
-	`"deb-src ${repo_nginx_url} ${lsb_codename} nginx\n" \
-	> "/etc/apt/sources.list.d/nginx.list"
+if apt_add_key "573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62" "nginx"; then
+	repo_nginx_url="http://nginx.org/packages/mainline/debian/"
+	printf "${bold}Installing nginx repository... "
+	printf ""`
+		`"deb ${repo_nginx_url} ${lsb_codename} nginx\n"`
+		`"deb-src ${repo_nginx_url} ${lsb_codename} nginx\n" \
+		> "/etc/apt/sources.list.d/nginx.list"
+	printf "${green}OK${normal}\n"
+fi
 
-apt_add_key "9FD3B784BC1C6FC31A8A0A1C1655A0AB68576280" "NodeSource"
-repo_nodesource_url="https://deb.nodesource.com/node_5.x/"
-printf "${bold}Installing NodeSource repository...${normal}\n"
-printf ""`
-	`"deb ${repo_nodesource_url} ${lsb_codename} main\n"`
-	`"deb-src ${repo_nodesource_url} ${lsb_codename} main\n" \
-	> "/etc/apt/sources.list.d/nodesource.list"
+if apt_add_key "9FD3B784BC1C6FC31A8A0A1C1655A0AB68576280" "NodeSource"; then
+	repo_nodesource_url="https://deb.nodesource.com/node_5.x/"
+	printf "${bold}Installing NodeSource repository... "
+	printf ""`
+		`"deb ${repo_nodesource_url} ${lsb_codename} main\n"`
+		`"deb-src ${repo_nodesource_url} ${lsb_codename} main\n" \
+		> "/etc/apt/sources.list.d/nodesource.list"
+	printf "${green}OK${normal}\n"
+fi
 
-apt_add_key "11E9DE8848F2B65222AA75B8D1820DB22A11534E" "WeeChat"
-repo_weechat_url="https://weechat.org/debian/"
-printf "${bold}Installing WeeChat repository...${normal}\n"
-printf ""`
-	`"deb ${repo_weechat_url} ${lsb_codename} main\n"`
-	`"deb-src ${repo_weechat_url} ${lsb_codename} main\n" \
-	> "/etc/apt/sources.list.d/weechat.list"
+if apt_add_key "11E9DE8848F2B65222AA75B8D1820DB22A11534E" "WeeChat"; then
+	repo_weechat_url="https://weechat.org/debian/"
+	printf "${bold}Installing WeeChat repository... "
+	printf ""`
+		`"deb ${repo_weechat_url} ${lsb_codename} main\n"`
+		`"deb-src ${repo_weechat_url} ${lsb_codename} main\n" \
+		> "/etc/apt/sources.list.d/weechat.list"
+	printf "${green}OK${normal}\n"
+fi
 
 # Update the system and install new packages.
 # ----------------------------------------------------------------------
@@ -212,6 +234,7 @@ for user in "${conf_users[@]}"; do
 		continue;
 	fi
 
+	# Generate a secure password.
 	password="$(pwgen 16 1)"
 	echo "${user}:${password}" | chpasswd
 
@@ -295,7 +318,7 @@ exit 0
 # ----------------------------------------------------------------------
 # - Terminal Colors With 'tput':
 #   http://www.tldp.org/HOWTO/Bash-Prompt-HOWTO/x405.html
-# - The Unofficial Bash Strict Mode: 
+# - The Unofficial Bash Strict Mode:
 #   http://redsymbol.net/articles/unofficial-bash-strict-mode
 # - The Internal Field Separator (IFS):
 #   http://stackoverflow.com/a/918931
