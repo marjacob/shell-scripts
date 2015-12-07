@@ -99,7 +99,7 @@ function apt_add_key {
 	if [ ${rc} -eq 0 ]; then
 		printf "${green}OK${normal}\n"
 	else
-		printf "${red}FAILED (%s)${normal}\n" "${rc}"
+		printf "${red}FAILED${normal}\n"
 	fi
 
 	return ${rc}
