@@ -207,8 +207,10 @@ fi
 # Configure and enable the firewall.
 # -----------------------------------------------------------------------------
 
+printf "${bold}Configuring firewall... "
+
 if [ -d "/sys/class/net" ]; then
-	printf "${bold}Configuring firewall... [ "
+	printf "[ "
 
 	# Add all network interfaces to the public firewall zone.
 	for interface in /sys/class/net/*; do
@@ -221,18 +223,15 @@ if [ -d "/sys/class/net" ]; then
 		fi
 
 		# Add the interface the public firewall zone.
-		if firewall-cmd \
+		firewall-cmd \
 			--zone=public \
 			--change-interface="${interface}" \
 			--permanent >/dev/null 2>&1; then
 
-			printf "${green}${interface}${normal} "
-		else
-			printf "${red}${interface}${normal} "
-		fi
+		printf "${interface} "
 	done
 
-	printf "${bold}] ${normal}"
+	printf "] "
 
 	if firewall-cmd --reload >/dev/null 2>&1; then
 		printf "${green}OK${normal}\n"
