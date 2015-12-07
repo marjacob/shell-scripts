@@ -206,30 +206,41 @@ fi
 
 # Configure and enable the firewall.
 # -----------------------------------------------------------------------------
-# The systemctl command is a part of systemd.
 
 if [ -d "/sys/class/net" ]; then
-	printf "${bold}Configuring firewall... "
+	printf "${bold}Configuring firewall... [ "
 
 	# Add all network interfaces to the public firewall zone.
 	for interface in /sys/class/net/*; do
+		# Obtain the last part of the path (the interface name).
 		interface=$(basename "${interface}")
-		
+
+		# Ignore the loopback interface.
 		if [ "lo" == "${interface}" ]; then
 			continue;
 		fi
-		
-		firewall-cmd \
+
+		# Add the interface the public firewall zone.
+		if firewall-cmd \
 			--zone=public \
 			--change-interface="${interface}" \
-			--permanent >/dev/null 2>&1
+			--permanent >/dev/null 2>&1; then
+
+			printf "${green}${interface}${normal} "
+		else
+			printf "${red}${interface}${normal} "
+		fi
 	done
+
+	printf "${bold}] ${normal}"
 
 	if firewall-cmd --reload >/dev/null 2>&1; then
 		printf "${green}OK${normal}\n"
 	else
 		printf "${red}FAILED${normal}\n"
 	fi
+else
+	printf "${red}FAILED${normal}\n"
 fi
 
 # Create and configure user accounts.
