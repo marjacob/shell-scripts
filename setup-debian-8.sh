@@ -210,8 +210,8 @@ fi
 printf "${bold}Configuring firewall... "
 
 if [ -d "/sys/class/net" ]; then
-	printf "[ "
-
+	interfaces="[ "
+	
 	# Add all network interfaces to the public firewall zone.
 	for interface in /sys/class/net/*; do
 		# Obtain the last part of the path (the interface name).
@@ -228,13 +228,13 @@ if [ -d "/sys/class/net" ]; then
 			--change-interface="${interface}" \
 			--permanent >/dev/null 2>&1
 
-		printf "${interface} "
+		interfaces+="${interface} "
 	done
 
-	printf "] "
+	interfaces+="]"
 
 	if firewall-cmd --reload >/dev/null 2>&1; then
-		printf "${green}OK${normal}\n"
+		printf "${green}OK${normal} ${interfaces}\n"
 	else
 		printf "${red}FAILED${normal}\n"
 	fi
