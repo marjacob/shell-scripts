@@ -226,7 +226,7 @@ if [ -d "/sys/class/net" ]; then
 		firewall-cmd \
 			--zone=public \
 			--change-interface="${interface}" \
-			--permanent >/dev/null 2>&1; then
+			--permanent >/dev/null 2>&1
 
 		printf "${interface} "
 	done
