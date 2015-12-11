@@ -27,7 +27,6 @@ conf_packages=(
 	"checkinstall"
 	"cmake"
 	"curl"
-	"firewalld"
 	"gdb"
 	"git"
 	"git-doc"
@@ -146,9 +145,10 @@ fi
 # -----------------------------------------------------------------------------
 
 required_packages=(
-	"apt-transport-https"
-	"lsb-release"
-	"pwgen"
+	"apt-transport-https" # Enables access to repositories over HTTPS.
+	"firewalld"           # Simple and flexible firewall.
+	"lsb-release"         # Provides version information.
+	"pwgen"               # Provides secure passwords.
 )
 
 if [ ${required_packages} ]; then
