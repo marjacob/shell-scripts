@@ -34,6 +34,7 @@ conf_packages=(
 	"libcurl4-doc"
 	"libcurl4-gnutls-dev"
 	"libicu-dev"          # ZNC dependency (optional).
+	"libldap2-dev"        # Kaiwa dependency.
 	"libperl-dev"         # ZNC dependency.
 	"libssl-dev"          # ZNC dependency.
 	"pkg-config"          # ZNC dependency.
@@ -42,6 +43,7 @@ conf_packages=(
 	"sudo"
 	"tmux"
 	"tree"
+	"uuid-dev"            # Kaiwa dependency.
 	"valgrind"
 	"vim"
 	"vlock"
@@ -211,7 +213,7 @@ printf "${bold}Configuring firewall... "
 
 if [ -d "/sys/class/net" ]; then
 	interfaces="["
-	
+
 	# Add all network interfaces to the public firewall zone.
 	for interface in /sys/class/net/*; do
 		# Obtain the last part of the path (the interface name).
