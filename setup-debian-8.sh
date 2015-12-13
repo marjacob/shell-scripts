@@ -33,17 +33,11 @@ conf_packages=(
 	"htop"
 	"libcurl4-doc"
 	"libcurl4-gnutls-dev"
-	"libicu-dev"          # ZNC dependency (optional).
-	"libldap2-dev"        # Kaiwa dependency.
-	"libperl-dev"         # ZNC dependency.
-	"libssl-dev"          # ZNC dependency.
-	"pkg-config"          # ZNC dependency.
 	"stow"
 	"strace"
 	"sudo"
 	"tmux"
 	"tree"
-	"uuid-dev"            # Kaiwa dependency.
 	"valgrind"
 	"vim"
 	"vlock"
