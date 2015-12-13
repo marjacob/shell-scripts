@@ -24,6 +24,7 @@ conf_sudoers=(
 conf_packages=(
 	"autossh"
 	"build-essential"
+	"ca-certificates"
 	"checkinstall"
 	"cmake"
 	"curl"
@@ -41,7 +42,7 @@ conf_packages=(
 	"valgrind"
 	"vim"
 	"vlock"
-	"xauth"	              # Allows X11 forwarding.
+	"xauth"	# Allows X11 forwarding.
 )
 
 # Internal functions and variables.
