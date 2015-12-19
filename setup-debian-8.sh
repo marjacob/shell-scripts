@@ -6,10 +6,16 @@ IFS=$'\n\t'
 # Written with Debian 8 in mind.
 # -----------------------------------------------------------------------------
 
+# Host settings.
 conf_hostname="ion"
 conf_timezone="Europe/Oslo"
 
-# Configure regular user accounts.
+# Third-party repositories.
+conf_enable_nginx_repository=true
+conf_enable_nodejs_repository=true
+conf_enable_weechat_repository=true
+
+# Regular user accounts.
 conf_users=(
 	"martin"
 	"terje"
@@ -18,6 +24,11 @@ conf_users=(
 # Users that should be granted root access.
 conf_sudoers=(
 	"martin"
+)
+
+# Firewalled network interfaces.
+conf_firewall_interfaces=(
+	"eth0"
 )
 
 # Automatically installed packages.
@@ -101,6 +112,32 @@ function apt_add_key {
 	return ${rc}
 }
 
+# Generates new SSH key pairs.
+function create_ssh_files {
+	local user_name=${1}
+	local user_home=${2}
+
+	# Create SSH configuration directory.
+	local ssh_home="${user_home}/.ssh"
+	mkdir -p "${ssh_home}"
+
+	if [ ! -e "${ssh_home}/id_rsa" ]; then
+		# Generate SSH key pair.
+		ssh-keygen -q -N "" -t rsa -b 4096 \
+			-C "${user_name}@${conf_hostname}" \
+			-f "${ssh_home}/id_rsa"
+
+		# Create default SSH configuration files.
+		touch ${ssh_home}/{config,known_hosts}
+		cp ${ssh_home}/id_rsa.pub ${ssh_home}/authorized_keys
+	fi
+
+	# Set secure permissions.
+	chown -R ${user_name}:${user_name} ${ssh_home}
+	chmod -R 600 ${ssh_home}
+	chmod 700 ${ssh_home}
+}
+
 # Make sure that the user is actually root.
 # -----------------------------------------------------------------------------
 
@@ -148,7 +185,7 @@ required_packages=(
 	"pwgen"               # Provides secure passwords.
 )
 
-if [ ${required_packages} ]; then
+if [ ${#required_packages[@]} -gt 0 ]; then
 	apt_update
 	apt_upgrade
 	apt_install "${required_packages[@]}"
@@ -162,8 +199,13 @@ lsb_codename=$(lsb_release -c -s)
 # Configure additional repositories.
 # -----------------------------------------------------------------------------
 
-if apt_add_key "573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62" "nginx"; then
+if [ true == "${conf_enable_nginx_repository}" ] &&
+	apt_add_key \
+		"573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62" \
+		"nginx"; then
+	
 	repo_nginx_url="http://nginx.org/packages/mainline/debian/"
+	
 	printf "${bold}Installing nginx repository... "
 	printf ""`
 		`"deb ${repo_nginx_url} ${lsb_codename} nginx\n"`
@@ -172,8 +214,13 @@ if apt_add_key "573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62" "nginx"; then
 	printf "${green}OK${normal}\n"
 fi
 
-if apt_add_key "9FD3B784BC1C6FC31A8A0A1C1655A0AB68576280" "NodeSource"; then
+if [ true == "${conf_enable_nodejs_repository}" ] &&
+	apt_add_key \
+		"9FD3B784BC1C6FC31A8A0A1C1655A0AB68576280" \
+		"NodeSource"; then
+	
 	repo_nodesource_url="https://deb.nodesource.com/node_5.x/"
+	
 	printf "${bold}Installing NodeSource repository... "
 	printf ""`
 		`"deb ${repo_nodesource_url} ${lsb_codename} main\n"`
@@ -182,8 +229,13 @@ if apt_add_key "9FD3B784BC1C6FC31A8A0A1C1655A0AB68576280" "NodeSource"; then
 	printf "${green}OK${normal}\n"
 fi
 
-if apt_add_key "11E9DE8848F2B65222AA75B8D1820DB22A11534E" "WeeChat"; then
+if [ true == "${conf_enable_weechat_repository}" ] &&
+	apt_add_key \
+		"11E9DE8848F2B65222AA75B8D1820DB22A11534E" \
+		"WeeChat"; then
+	
 	repo_weechat_url="https://weechat.org/debian/"
+	
 	printf "${bold}Installing WeeChat repository... "
 	printf ""`
 		`"deb ${repo_weechat_url} ${lsb_codename} main\n"`
@@ -195,7 +247,7 @@ fi
 # Update the system and install new packages.
 # -----------------------------------------------------------------------------
 
-if [ ${conf_packages} ]; then
+if [ ${#conf_packages[@]} -gt 0 ]; then
 	apt_update
 	apt_upgrade
 	apt_install "${conf_packages[@]}"
@@ -204,40 +256,64 @@ fi
 # Configure and enable the firewall.
 # -----------------------------------------------------------------------------
 
-printf "${bold}Configuring firewall... "
-
-if [ -d "/sys/class/net" ]; then
-	interfaces="["
-
+if [ ${#conf_firewall_interfaces[@]} -gt 0 ]; then
+	printf "${bold}Configuring firewall... "
+	
 	# Add all network interfaces to the public firewall zone.
-	for interface in /sys/class/net/*; do
-		# Obtain the last part of the path (the interface name).
-		interface=$(basename "${interface}")
-
-		# Ignore the loopback interface.
-		if [ "lo" == "${interface}" ]; then
-			continue;
-		fi
-
+	for interface in "${conf_firewall_interfaces[@]}"; do
 		# Add the interface the public firewall zone.
 		firewall-cmd \
 			--zone=public \
 			--change-interface="${interface}" \
 			--permanent >/dev/null 2>&1
-
-		interfaces+="${interface},"
 	done
 
-	interfaces+="\b]"
-
 	if firewall-cmd --reload >/dev/null 2>&1; then
-		printf "${green}OK${normal} ${interfaces}\n"
+		printf "${green}OK${normal}\n"
 	else
 		printf "${red}FAILED${normal}\n"
 	fi
-else
-	printf "${red}FAILED${normal}\n"
 fi
+
+# Create custom configuration files.
+# -----------------------------------------------------------------------------
+
+printf "${bold}Writing configuration files...${normal}\n"
+
+# Generate SSH key pair for root.
+create_ssh_files root ~root
+
+# tmux
+cat << EOF > "/root/.tmux.conf"
+bind-key C-F12 lock-session
+bind-key r source-file ~/.tmux.conf \; display-message "OK"
+set -g lock-after-time 0
+set -g lock-server on
+set-option -g lock-command vlock
+set-option -s escape-time 0
+set-window-option -g aggressive-resize on
+EOF
+
+# vim
+cat << EOF > "/root/.vimrc"
+filetype off
+syntax on
+
+set autoindent
+set background=dark
+set backspace=indent,eol,start
+set cindent
+set colorcolumn=80
+set fileencodings=utf-8,latin9,latin1,ucs-bom
+set incsearch ignorecase hlsearch
+set mouse=a
+set nocompatible
+set number
+set shiftwidth=8
+set tabstop=8
+
+nnoremap <silent> <Space> :silent noh<Bar>echo<CR>
+EOF
 
 # Create and configure user accounts.
 # -----------------------------------------------------------------------------
@@ -245,47 +321,33 @@ fi
 printf "${bold}Creating users...${normal}\n"
 
 # Create user accounts and SSH key pairs.
-for user in "${conf_users[@]}"; do
-	# Create user account.
-	if ! adduser --disabled-password --gecos "" "${user}"; then
-		continue;
-	fi
+if [ ${#conf_users[@]} -gt 0 ]; then
+	for user in "${conf_users[@]}"; do
+		# Create user account.
+		if ! adduser --disabled-password --gecos "" "${user}"; then
+			continue;
+		fi
 
-	# Generate a secure password.
-	password="$(pwgen 16 1)"
-	echo "${user}:${password}" | chpasswd
+		# Generate a secure password.
+		password="$(pwgen 16 1)"
+		echo "${user}:${password}" | chpasswd
+		
+		# Create SSH key pair.
+		create_ssh_files ${user} "$(eval echo ~${user})"
 
-	# Create SSH configuration directory.
-	user_ssh_home="$(eval echo ~${user})/.ssh"
-	mkdir -p "${user_ssh_home}"
-
-	# Generate SSH key pair.
-	if [ ! -e "${user_ssh_home}/id_rsa" ]; then
-		ssh-keygen -q -N "" -t rsa -b 4096 \
-			-C "${user}@${conf_hostname}" \
-			-f "${user_ssh_home}/id_rsa"
-
-		# Create default SSH configuration files.
-		touch ${user_ssh_home}/{config,known_hosts}
-		cp ${user_ssh_home}/id_rsa.pub \
-			${user_ssh_home}/authorized_keys
-	fi
-
-	# Set secure permissions.
-	chown -R ${user}:${user} ${user_ssh_home}
-	chmod -R 600 ${user_ssh_home}
-	chmod 700 ${user_ssh_home}
-
-	printf \
-		"${bold}Password for \"%s\" is \"%s\".${normal}\n" \
-		"${user}" \
-		"${password}"
-done
+		printf \
+			"${bold}Password for \"%s\" is \"%s\".${normal}\n" \
+			"${user}" \
+			"${password}"
+	done
+fi
 
 # Grant sudo permissions to specified users.
-for user in "${conf_sudoers[@]}"; do
-	usermod -a -G sudo "${user}"
-done
+if [ ${#conf_sudoers[@]} -gt 0 ]; then
+	for user in "${conf_sudoers[@]}"; do
+		usermod -a -G sudo "${user}"
+	done
+fi
 
 # Apply custom patches.
 # -----------------------------------------------------------------------------
@@ -294,7 +356,7 @@ printf "${bold}Applying custom patches...${normal}\n"
 
 # Patches annoying warning about a "precedence issue" in GNU Stow.
 # https://bugzilla.redhat.com/show_bug.cgi?id=1226473
-(cd / && patch -p0 -N) <<'EOF'
+(cd / && patch -p0 -N) << 'EOF'
 --- /usr/share/perl5/Stow.pm	2015-11-15 14:13:24.988791230 +0100
 +++ /usr/share/perl5/Stow.pm	2015-11-15 14:14:50.901640819 +0100
 @@ -1732,8 +1732,9 @@
