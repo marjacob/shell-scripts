@@ -28,6 +28,10 @@ This example moves the home directory of the user `znc` to `/mnt/home/znc`.
 - `-d` specifies the new home directory.
 - `-m` moves the content of the previous home directory to the new location.
 
+# Generating SSH keys
+	
+	ssh-keygen -q -N "" -t rsa -b 4096 -C "root@merlin" -f "/root/.ssh/id_rsa"
+
 # Sources
 - [Moving home directories](https://lists.debian.org/debian-user/2008/10/msg00335.html)
 - [The difference between normal users and system users](http://unix.stackexchange.com/a/80279)
