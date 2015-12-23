@@ -29,8 +29,15 @@ This example moves the home directory of the user `znc` to `/mnt/home/znc`.
 - `-m` moves the content of the previous home directory to the new location.
 
 # Generating SSH keys
+This example creates a 4096 bit RSA key pair in `/root/.ssh/`.
 	
 	ssh-keygen -q -N "" -t rsa -b 4096 -C "root@merlin" -f "/root/.ssh/id_rsa"
+	
+Ensure that the `.ssh` directory and its contents has the correct permissions.
+
+	chown -R root:root /root/.ssh
+	chmod -R 600 /root/.ssh
+	chmod 700 /root/.ssh
 
 ## Flags
 - `-q` suppresses any output from `ssh-keygen`.
