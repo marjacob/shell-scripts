@@ -185,9 +185,10 @@ required_packages=(
 	"pwgen"               # Provides secure passwords.
 )
 
+apt_update
+apt_upgrade
+
 if [ ${#required_packages[@]} -gt 0 ]; then
-	apt_update
-	apt_upgrade
 	apt_install "${required_packages[@]}"
 fi
 
@@ -356,7 +357,7 @@ printf "${bold}Applying custom patches...${normal}\n"
 
 # Patches annoying warning about a "precedence issue" in GNU Stow.
 # https://bugzilla.redhat.com/show_bug.cgi?id=1226473
-(cd / && patch -p0 -N) << 'EOF'
+(cd / && exec patch -p0 -N) << 'EOF'
 --- /usr/share/perl5/Stow.pm	2015-11-15 14:13:24.988791230 +0100
 +++ /usr/share/perl5/Stow.pm	2015-11-15 14:14:50.901640819 +0100
 @@ -1732,8 +1732,9 @@
