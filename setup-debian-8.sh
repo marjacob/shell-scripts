@@ -200,11 +200,14 @@ lsb_codename=$(lsb_release -c -s)
 # Configure additional repositories.
 # -----------------------------------------------------------------------------
 
+apt_refresh_required=false
+
 if [ true == "${conf_enable_nginx_repository}" ] &&
 	apt_add_key \
 		"573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62" \
 		"nginx"; then
 	
+	apt_refresh_required=true
 	repo_nginx_url="http://nginx.org/packages/mainline/debian/"
 	
 	printf "${bold}Installing nginx repository... "
@@ -220,6 +223,7 @@ if [ true == "${conf_enable_nodejs_repository}" ] &&
 		"9FD3B784BC1C6FC31A8A0A1C1655A0AB68576280" \
 		"NodeSource"; then
 	
+	apt_refresh_required=true
 	repo_nodesource_url="https://deb.nodesource.com/node_5.x/"
 	
 	printf "${bold}Installing NodeSource repository... "
@@ -235,6 +239,7 @@ if [ true == "${conf_enable_weechat_repository}" ] &&
 		"11E9DE8848F2B65222AA75B8D1820DB22A11534E" \
 		"WeeChat"; then
 	
+	apt_refresh_required=true
 	repo_weechat_url="https://weechat.org/debian/"
 	
 	printf "${bold}Installing WeeChat repository... "
@@ -248,9 +253,12 @@ fi
 # Update the system and install new packages.
 # -----------------------------------------------------------------------------
 
-if [ ${#conf_packages[@]} -gt 0 ]; then
+if [ true == "${apt_refresh_required}" ]; then
 	apt_update
 	apt_upgrade
+fi
+
+if [ ${#conf_packages[@]} -gt 0 ]; then
 	apt_install "${conf_packages[@]}"
 fi
 
