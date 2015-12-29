@@ -28,6 +28,25 @@ This example moves the home directory of the user `znc` to `/mnt/home/znc`.
 - `-d` specifies the new home directory.
 - `-m` moves the content of the previous home directory to the new location.
 
+# Generating SSH keys
+This example creates a 4096 bit RSA key pair in `/root/.ssh/`.
+	
+	ssh-keygen -q -N "" -t rsa -b 4096 -C "root@merlin" -f "/root/.ssh/id_rsa"
+	
+Ensure that the `.ssh` directory and its contents has the correct permissions.
+
+	chown -R root:root /root/.ssh
+	chmod -R 600 /root/.ssh
+	chmod 700 /root/.ssh
+
+## Flags
+- `-q` suppresses any output from `ssh-keygen`.
+- `-N` provides the new passphrase (none).
+- `-t` specifies the type of key to create (RSA). 
+- `-b` specifies the number of bits in the key to create (4096).
+- `-C` provides a new comment (root@merlin).
+- `-f` specifies the filename of the key file (/root/.ssh/id_rsa).
+
 # Sources
 - [Moving home directories](https://lists.debian.org/debian-user/2008/10/msg00335.html)
 - [The difference between normal users and system users](http://unix.stackexchange.com/a/80279)
