@@ -41,7 +41,7 @@ if [ ${#cfg_hostnames[@]} -gt 0 ]; then
 			printf "allow %-39s %s\n" \
 				"${ip_address}" \
 				"${hostname}"
-			fw_allow "${ip_address}"
+			fw_allow_ip "${ip_address}"
 		done
 	done
 fi
