@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN"
+                       "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+	<dict>
+		<key>UserName</key>
+		<string>_tunnel</string>
+
+		<!-- The process should remain running indefinitely. -->
+		<key>KeepAlive</key>
+		<true/>
+
+		<!-- Run the daemon when the OS starts up. -->
+		<key>RunAtLoad</key>
+		<true/>
+
+		<!-- Unique launchd daemon ID. -->
+		<key>Label</key>
+		<string>com.example.autossh</string>
+
+		<!-- The exec() arguments used to launch the daemon. -->
+		<key>ProgramArguments</key>
+		<array>
+			<!-- The fully qualified path to autossh. -->
+			<string>/usr/local/bin/autossh</string>
+
+			<!-- Suppress most warning and diagnostic messages. -->
+			<string>-q</string>
+
+			<!-- Do not execute a remote command. -->
+			<string>-N</string>
+
+			<!-- Specifies the base monitoring port to use. -->
+			<string>-M</string>
+			<string>20000</string>
+
+			<!-- Disable pseudo-terminal allocation. -->
+			<string>-T</string>
+
+			<!-- Require all forwardings to succeed. -->
+			<string>-o</string>
+			<string>ExitOnForwardFailure=yes</string>
+
+			<!-- Set up a SOCKS proxy on port 1776. -->
+			<string>-D</string>
+			<string>1776</string>
+
+			<!-- Receive remote SSH connections on port 22000. -->
+			<string>-R</string>
+			<string>22000:localhost:22</string>
+			<string>com.example</string>
+		</array>
+
+		<!-- Configure low priority. -->
+		<key>Nice</key>
+		<integer>20</integer>
+		<key>LowPriorityIO</key>
+		<true/>
+	</dict>
+</plist>
